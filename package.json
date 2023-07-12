@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/schafe-vorm-fenster/calendar-api#readme",
   "dependencies": {
+    "googleapis": "^121.0.0",
     "next": "^13.4.9",
     "next-swagger-doc": "^0.3.6",
     "pino": "^8.14.1",
