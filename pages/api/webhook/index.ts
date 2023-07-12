@@ -21,7 +21,10 @@ export default async function handler(
 ) {
   const log = getLogger("api.webhook");
 
-  log.debug({ request: { body: req.body } }, "Received webhook");
+  log.debug(
+    { request: { body: req.body, headers: req.headers } },
+    "Received webhook"
+  );
 
   return res.status(200).json({ hello: "jan" });
 }

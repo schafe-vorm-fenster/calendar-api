@@ -40,8 +40,8 @@ export default async function handler(
     undefined,
     JSON.parse(`"${process.env.GOOGLEAPI_PRIVATE_KEY}"`),
     [
-      "https://www.googleapis.com/auth/calendar.readonly",
-      "https://www.googleapis.com/auth/calendar.events.readonly",
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events",
     ]
   );
   const calendar: Calendar = google.calendar({ version: "v3", auth });
@@ -56,15 +56,14 @@ export default async function handler(
 
   // get metadata
   const test: any = await calendar.events.watch({
-    calendarId:
-      "schafe-vorm-fenster.de_0k88ob4lttnn73ro2gu0nhs5l4@group.calendar.google.com", // calendarId as string,
+    calendarId: calendarId as string,
     showDeleted: true,
     requestBody: {
       id: "my-channel-id-5",
       address: "https://calendar.api.schafe-vorm-fenster.de/api/webhook/",
-      type: "web_hook",
+      type: "webhook",
       payload: true,
-      resourceId: "kTXMwT3eKNqup9TfU9vDSrAXMH4",
+      // resourceId: "kTXMwT3eKNqup9TfU9vDSrAXMH4",
       kind: "api#channel",
       params: {
         ttl: "3600",
