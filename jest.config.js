@@ -2,5 +2,6 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testPathIgnorePatterns: ["<rootDir>/dist/", "<rootDir>/node_modules/"]
+  testPathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/node_modules/'],
+  reactStrictMode: false, // SwaggerUI uses some non-strict React features
 };

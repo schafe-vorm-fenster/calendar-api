@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['swagger-ui-react',
-    'react-syntax-highlighter',
-    'swagger-client'],
-}
+  reactStrictMode: false, // SwaggerUI uses some non-strict React features
+  swcMinify: true,
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
