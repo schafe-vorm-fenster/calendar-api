@@ -1,6 +1,6 @@
 {
   "name": "calendar-api",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "The API provides a comprehensive solution for managing calendar subscriptions and facilitating real-time event updates.",
   "keywords": [
