@@ -1,0 +1,43 @@
+import { localCache, remoteDatabaseCache } from "../../cache/cachemanager";
+import {
+  zendesksellGetClients,
+  ZendesksellGetClientsQuery,
+  ZendesksellGetClientsResult,
+} from "./zendesksellGetClients";
+
+/**
+ * Use a two layer cache.
+ * @param query: ZendesksellGetClientsQuery
+ * @returns hierarchy: ZendesksellGetClientsResult
+ */
+const memoryCached = async (
+  query: ZendesksellGetClientsQuery
+): Promise<ZendesksellGetClientsResult> => {
+  try {
+    const cacheKey = "zendesksell_getclients_all";
+    console.debug(`[Cache] Check local cache for ${cacheKey}.`);
+    return localCache.wrap(cacheKey, function () {
+      try {
+        console.debug(`[Cache] Check remote cache for ${cacheKey}.`);
+        return remoteDatabaseCache.wrap(cacheKey, function () {
+          console.info(`[Cache] Fetch original data for ${cacheKey}.`);
+          return zendesksellGetClients(query);
+        });
+      } catch (error) {
+        console.error((error as Error).message);
+        throw error;
+      }
+    });
+  } catch (error) {
+    console.error((error as Error).message);
+    return null;
+  }
+};
+
+export const zendesksellGetClientsCached = async (
+  query: ZendesksellGetClientsQuery
+): Promise<ZendesksellGetClientsResult> => {
+  if (process.env.DEACTIVATE_CACHE === "true")
+    return zendesksellGetClients(query);
+  return memoryCached(query);
+};

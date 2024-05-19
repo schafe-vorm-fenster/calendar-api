@@ -1,13 +1,18 @@
 /**
  * @swagger
- * /api/calendars:
+ * /api/calendars/new:
  *   post:
- *     summary: Returns a list of all available calendars.
- *     description: Provides all available calendars of active clients from the crm system.
+ *     summary: Returns a list of new calendars.
+ *     description: Provides new calendars since the given point in time of active clients from the crm system.
  *     tags:
  *       - Calendars
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: since
+ *         in: query
+ *         description: The point in time in ISO-8601 in UTC.
+ *         example: 2024-05-01T02:30:00Z
  *     responses:
  *       200:
  *         description: Calendars.
