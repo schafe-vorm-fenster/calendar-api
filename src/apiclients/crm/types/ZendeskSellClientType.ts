@@ -1,4 +1,4 @@
-import { CalenderFeedType } from '@/types/calendar';
+export type CalenderFeedType = 'ical' | 'google';
 
 export type ZendeskSellClientCalendarFormat = CalenderFeedType;
 

@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/events/google/{googleId}:
+ * /api/calendars/{calendarId}/events:
  *   post:
  *     summary: Returns events of the a calendar.
  *     description: Provides a list of events for the given calendar.
@@ -9,13 +9,13 @@
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: googleId
+ *       - name: calendarId
  *         in: path
- *         description: Google id of the calendar.
+ *         description: Id of the calendar.
  *         example: schafe-vorm-fenster.de_0k88ob4lttnn73ro2gu0nhs5l4@group.calendar.google.com
  *       - name: since
  *         in: query
- *         description: The point in time in ISO-8601 in UTC.
+ *         description: The point in time in ISO-8601 in UTC.®
  *     responses:
  *       200:
  *         description: Event list.

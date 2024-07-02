@@ -3,12 +3,12 @@ import {
   ZendesksellGetClientsResult,
   zendesksellGetClients,
 } from '@/apiclients/crm/zendesksellGetClients';
-import { OrganizerApiResponse } from '@/types/organizer';
+import { OrganizerApiResponse } from './api.types';
 
 /**
  * @swagger
  * /api/organizers:
- *   post:
+ *   get:
  *     summary: Returns a list of all organizers..
  *     description: Provides all organizers which means all active clients from the crm system.
  *     tags:
@@ -31,6 +31,7 @@ export async function GET() {
     (await zendesksellGetClients(query)) || null;
 
   const responseBody: OrganizerApiResponse = {
+    status: data ? 200 : 404,
     results: data ? data.length : 0,
     data: data || [],
   };

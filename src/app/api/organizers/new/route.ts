@@ -4,7 +4,7 @@ import {
   ZendesksellGetClientsResult,
   zendesksellGetClients,
 } from '@/apiclients/crm/zendesksellGetClients';
-import { OrganizerApiResponse } from '@/types/organizer';
+import { OrganizerApiResponse } from '../api.types';
 
 /**
  * @swagger
@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
     (await zendesksellGetClients(query)) || null;
 
   const responseBody: OrganizerApiResponse = {
+    status: data ? 200 : 404,
     results: data ? data.length : 0,
     data: data || [],
   };

@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { ZendeskSellClientType } from '../types/ZendeskSellClientType';
 import { jsonToZendeskSellClient } from './jsonToZendeskSellClient';
 import {
