@@ -5,11 +5,12 @@ import {
   zendesksellGetClients,
 } from '@/apiclients/crm/zendesksellGetClients';
 import { OrganizerApiResponse } from '../api.types';
+import { ChacheHeaderFifteenMinutes } from '../../api.const';
 
 /**
  * @swagger
  * /api/organizers/new:
- *   post:
+ *   get:
  *     summary: Returns a list of new organizers.
  *     description: Provides new organizers (active clients from the crm system) since a given point in time.
  *     tags:
@@ -59,12 +60,19 @@ export async function GET(request: NextRequest) {
     data: data || [],
   };
 
+  if (responseBody.status !== 200) {
+    return Response.json(responseBody, {
+      status: responseBody.status,
+      headers: {
+        ...ChacheHeaderFifteenMinutes,
+      },
+    });
+  }
+
   // send response with cache headers
   return Response.json(responseBody, {
     headers: {
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
-      'CDN-Cache-Control': 'public, s-maxage=900',
-      'Vercel-CDN-Cache-Control': 'public, s-maxage=2700',
+      ...ChacheHeaderFifteenMinutes,
     },
   });
 }
