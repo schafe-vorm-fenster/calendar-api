@@ -1,11 +1,5 @@
-export type CalenderFeedType = 'ical' | 'google';
+import { ZendeskSellClientCalendar } from './zendesk-sell-calendar.types';
 
-export type ZendeskSellClientCalendarFormat = CalenderFeedType;
-
-export interface ZendeskSellClientCalendar {
-  id: string;
-  type: ZendeskSellClientCalendarFormat;
-}
 export interface ZendeskSellClientType {
   id: number;
   created_at: string;
@@ -34,3 +28,9 @@ export interface ZendeskSellClientType {
   // tags: string[];
   calendars: ZendeskSellClientCalendar[];
 }
+
+// pick attributes
+export type ZendeskSellClientTeaserType = Pick<
+  ZendeskSellClientType,
+  'id' | 'name'
+>;

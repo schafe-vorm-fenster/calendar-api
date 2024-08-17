@@ -19,7 +19,6 @@ describe('API route /api/calendars/{calendarId}', () => {
       params: { calendarId: 'error' },
     });
 
-    // console.log(response);
     expect(response.status).toBe(500);
 
     const body: ApiErrorResponse = await response.json();

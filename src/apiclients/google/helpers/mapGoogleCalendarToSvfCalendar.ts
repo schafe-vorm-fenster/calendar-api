@@ -21,5 +21,9 @@ export const mapGoogleCalendarToSvfCalendar = (
     tags: data?.tags || [],
     scopes: data?.scopes || [],
     url: data?.url || '',
+    organizer: {
+      id: 0,
+      name: '',
+    },
   };
 };

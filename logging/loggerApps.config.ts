@@ -15,3 +15,9 @@ export namespace apiclient {
     get = 'apiclient.google.calendar.get',
   }
 }
+
+export namespace aggregations {
+  export enum zendesksell {
+    googlecalendar = 'aggregations.zendesksell.with.googlecalendar',
+  }
+}

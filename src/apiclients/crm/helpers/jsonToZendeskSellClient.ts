@@ -1,7 +1,5 @@
-import {
-  ZendeskSellClientCalendar,
-  ZendeskSellClientType,
-} from '../types/ZendeskSellClientType';
+import { ZendeskSellClientCalendar } from '../types/zendesk-sell-calendar.types';
+import { ZendeskSellClientType } from '../types/ZendeskSellClientType';
 import { getSpecificCustomFieldsFromZendeskSellClient } from './getSpecificCustomFieldsFromZendeskSellClient';
 
 /**

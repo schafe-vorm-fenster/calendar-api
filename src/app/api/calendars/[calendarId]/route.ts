@@ -1,7 +1,7 @@
 import { ApiErrorResponse } from '../../api.types';
-import { CalendarsApiResponseItem } from '../calendars-api.types';
 import { CalendarResult } from '@/apiclients/google/types/getCalendar.types';
 import { googleCalendarGetCalendar } from '@/apiclients/google/googleCalendarGetCalendar';
+import { CalendarApiResponse, CalendarApiResponseItem } from '../api.types';
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ export async function GET(
       );
     }
 
-    const apiResponse: CalendarsApiResponseItem = {
+    const apiResponse: CalendarApiResponseItem = {
       status: 200,
       data: calendarResult,
     };
