@@ -1,3 +1,5 @@
+import { googleCalendarGetEvents } from '@/apiclients/google/googleCalendarGetEvents';
+
 /**
  * @swagger
  * /api/calendars/{calendarId}/events:
@@ -28,10 +30,27 @@
  *       500:
  *         description: Error. Maybe the google api could not be reached.
  */
-export async function GET() {
-  const data = {
-    debug: 'Jan',
-  };
+export async function GET(
+  undefined: any,
+  { params }: { params: { calendarId: string } },
+) {
+  const calendarId = params.calendarId;
 
-  return Response.json({ data });
+  try {
+    const events: any = await googleCalendarGetEvents({
+      calendarId: calendarId,
+    } as { calendarId: string });
+
+    // TODO: type as response
+    const response = {
+      status: 200,
+      calendarId: calendarId,
+      results: events.length,
+      data: events,
+    };
+
+    return Response.json(response);
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 }

@@ -14,6 +14,9 @@ export namespace apiclient {
   export enum googlecalendar {
     get = 'apiclient.google.calendar.get',
   }
+  export enum googleevents {
+    get = 'apiclient.google.events.get',
+  }
 }
 
 export namespace aggregations {
