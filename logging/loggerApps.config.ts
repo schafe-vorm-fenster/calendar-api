@@ -16,6 +16,7 @@ export namespace apiclient {
   }
   export enum googleevents {
     get = 'apiclient.google.events.get',
+    fetch = 'apiclient.google.events.fetch',
   }
 }
 

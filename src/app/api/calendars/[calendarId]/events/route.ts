@@ -1,56 +1,77 @@
+import { createNextHandler } from '@ts-rest/serverless/next';
+import { EventsContract } from './events.contract';
 import { googleCalendarGetEvents } from '@/apiclients/google/googleCalendarGetEvents';
+import { ZodError } from 'zod';
+import { handleZodError } from '@/rest/zod-error-handler';
+import { FetchEventsResult } from '@/apiclients/google/types/events.types';
 
-/**
- * @swagger
- * /api/calendars/{calendarId}/events:
- *   post:
- *     summary: Returns events of the a calendar.
- *     description: Provides a list of events for the given calendar.
- *     tags:
- *       - Events
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: calendarId
- *         in: path
- *         description: Id of the calendar.
- *         example: schafe-vorm-fenster.de_0k88ob4lttnn73ro2gu0nhs5l4@group.calendar.google.com
- *       - name: since
- *         in: query
- *         description: The point in time in ISO-8601 in UTC.®
- *     responses:
- *       200:
- *         description: Event list.
- *       204:
- *         description: No events found.
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: Calendar not found.
- *       500:
- *         description: Error. Maybe the google api could not be reached.
- */
-export async function GET(
-  undefined: any,
-  { params }: { params: { calendarId: string } },
-) {
-  const calendarId = params.calendarId;
+const handler = createNextHandler(
+  EventsContract,
+  {
+    getEvents: async ({
+      params: { calendarId },
+      query: { timeMin, timeMax, updatedMin },
+    }) => {
+      const apiRequestTimestamp = new Date().toISOString(); // set at the beginning to be static for the whole api
 
-  try {
-    const events: any = await googleCalendarGetEvents({
-      calendarId: calendarId,
-    } as { calendarId: string });
+      try {
+        const result: FetchEventsResult | null = await googleCalendarGetEvents({
+          calendarId,
+          timeMin,
+          timeMax,
+          updatedMin,
+        });
 
-    // TODO: type as response
-    const response = {
-      status: 200,
-      calendarId: calendarId,
-      results: events.length,
-      data: events,
-    };
+        if (result === null || result.results === 0) {
+          return {
+            status: 200,
+            body: {
+              status: 204,
+              calendarId,
+              results: 0,
+              timestamp: apiRequestTimestamp,
+              data: [],
+            },
+          };
+        }
 
-    return Response.json(response);
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-}
+        return {
+          status: 200,
+          body: {
+            status: 200,
+            results: result.data.length,
+            calendarId: result.calendarId,
+            timestamp: apiRequestTimestamp,
+            data: result.data,
+          },
+        };
+      } catch (error: any) {
+        if (error instanceof ZodError) {
+          return {
+            status: 400,
+            body: {
+              status: 400,
+              error: 'Bad Request',
+              message: error.errors,
+            },
+          };
+        }
+        return {
+          status: 500,
+          body: {
+            status: 500,
+            error: 'Internal Server Error',
+            message: error.message ?? 'An unexpected error occurred.',
+          },
+        };
+      }
+    },
+  },
+  {
+    handlerType: 'app-router',
+    responseValidation: false, // as long as google events do not have a zod schema
+    errorHandler: handleZodError,
+  },
+);
+
+export { handler as GET };
