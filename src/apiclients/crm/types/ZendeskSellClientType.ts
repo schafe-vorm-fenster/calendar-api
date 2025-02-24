@@ -13,7 +13,7 @@ export interface ZendeskSellClientType {
   // currentTarif: string | null;
   description?: string;
   website?: string;
-  // email?: string;
+  email?: string;
   // phone?: string;
   // twitter?: string;
   // address: {

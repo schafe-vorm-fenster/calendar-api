@@ -12,6 +12,8 @@ export const jsonToZendeskSellClient = (
 ): ZendeskSellClientType | null => {
   if (!json || !json.id) return null;
 
+  console.log('jsonToZendeskSellClient', json);
+
   const googleCalendars: string[] =
     <string[]>(
       getSpecificCustomFieldsFromZendeskSellClient(
@@ -49,6 +51,7 @@ export const jsonToZendeskSellClient = (
     googleCalendarRefs.concat(icsCalendarRefs);
 
   const data: ZendeskSellClientType = {
+    ...json,
     id: json.id,
     // isClient: json?.customer_status === 'current' ? true : false,
     // currentTarif:
