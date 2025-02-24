@@ -18,6 +18,7 @@ export type ReducedGoogleEvent = Pick<
   | 'recurrence'
   | 'recurringEventId'
   | 'status'
+  | 'kind'
 > & {
   organizer?: Omit<
     calendar_v3.Schema$Event['organizer'],

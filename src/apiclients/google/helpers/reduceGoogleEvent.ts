@@ -7,6 +7,7 @@ export const reduceGoogleEvent = (
 ): ReducedGoogleEvent => {
   return {
     id: googleEvent.id,
+    kind: googleEvent.kind,
     created: googleEvent.created,
     updated: googleEvent.updated,
     summary: googleEvent.summary,
