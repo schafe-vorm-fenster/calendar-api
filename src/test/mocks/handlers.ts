@@ -12,7 +12,7 @@ export const handlers = [
     },
   ),
 
-  http.get('https://api.nasa.gov/EPIC/api/natural', ({ request, params }) => {
+  http.get('https://api.nasa.gov/EPIC/api/natural', ({ request }) => {
     console.log('Handler', request.method, request.url);
     return Response.json({
       id: 'unknown',

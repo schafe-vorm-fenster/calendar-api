@@ -1,24 +1,29 @@
 import { createNextHandler } from '@ts-rest/serverless/next';
 import { HealthContract } from './health.contract';
 import packageJson from '../../../../package.json' assert { type: 'json' };
+import { getLogger } from '@/logging/logger';
+import { apiLoggerHealth } from '@/logging/loggerApps.config';
 import {
   HealthyApiStatusSchema,
   ServiceStatusSchema,
   UnhealthyApiStatusSchema,
 } from '@/rest/health.schema';
+import { checkMateoApiHealth } from '@/clients/mateo/mateo-check-health';
+
+const log = getLogger(apiLoggerHealth.check);
 
 const handler = createNextHandler(
   HealthContract,
   {
     health: async () => {
-      const crmApiHealth: ServiceStatusSchema = {
-        status: 200,
-        name: 'crm-api-dummy',
-      };
-
       // evaluate overall status code
       let status: number = 200;
+
+      // check client services
+      const crmApiHealth: ServiceStatusSchema = await checkMateoApiHealth();
+
       if (crmApiHealth.status !== 200) {
+        log.error({ services: [crmApiHealth] }, 'service is unhealthy');
         status = 503;
       }
 

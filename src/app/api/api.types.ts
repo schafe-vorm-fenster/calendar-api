@@ -7,13 +7,13 @@ export interface ApiResponseWithResult {
 }
 
 export interface ApiResponseItem extends ApiResponseWithResult {
-  data: any;
+  data: unknown;
 }
 
 export interface ApiResponseList extends ApiResponseWithResult {
   results: number;
   // TODO: add paging
-  data: any[];
+  data: unknown[];
 }
 
 export interface ApiErrorResponse extends ApiResponse {

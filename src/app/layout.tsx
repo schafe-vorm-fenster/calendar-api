@@ -1,11 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import 'swagger-ui-react/swagger-ui.css';
-
-const inter = Inter({ subsets: ['latin'] });
+import packageJson from '../../package.json' assert { type: 'json' };
 
 export const metadata: Metadata = {
-  title: 'calendar-api',
+  title: packageJson.name + ' - Swagger',
 };
 
 export default function RootLayout({

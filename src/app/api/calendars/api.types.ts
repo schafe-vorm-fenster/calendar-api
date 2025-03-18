@@ -1,4 +1,4 @@
-import { SvFCalendar } from '@/apiclients/google/types/svfCalendar.types';
+import { SvFCalendar } from '@/calendar/types/calendar.types';
 import { ApiResponseItem, ApiResponseList } from '../api.types';
 
 export interface CalendarApiResponse extends ApiResponseList {

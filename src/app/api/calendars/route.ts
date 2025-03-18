@@ -1,108 +1,82 @@
-import {
-  zendesksellGetCalendars,
-  ZendesksellGetCalendarsQuery,
-  ZendesksellGetCalendarsResult,
-} from '@/apiclients/crm/zendesksellGetCalendars';
-import { ChacheHeaderFifteenMinutes } from '../api.const';
-import { CalendarApiResponse } from './api.types';
-import { SvFCalendar } from '@/apiclients/google/types/svfCalendar.types';
-import { CalenderFeedType } from '@/apiclients/crm/types/zendesk-sell-calendar.types';
-import { NextRequest } from 'next/server';
-import { ApiErrorResponse } from '../api.types';
-import { getLogger } from '../../../../logging/log-util';
-import { api } from '../../../../logging/loggerApps.config';
-import { enrichZendeskCalendarsWithGoogleCalendars } from '@/aggregations/enrichZendeskCalendarsWithGoogleCalendars';
+import { getLogger } from '@/logging/logger';
+import { apiLoggerCalendars } from '@/logging/loggerApps.config';
+import { createNextHandler } from '@ts-rest/serverless/next';
+import { MateoContactListItem } from '@/clients/mateo/types/mateo-contact-list.types';
+import { getMateoContacts } from '@/clients/mateo/mateo-get-contacts';
+import { Organizer } from '@/organizer/types/organizer.types';
+import { ErrorSchema } from '@/rest/error.schema';
+import { handleZodError } from '@/rest/zod-error-handler';
+import { GetCalendarsContract } from './get-calendars.contract';
+import { mapToOrganizers } from '@/clients/mateo/helpers/map-to-organizers';
+import { transformOrganizersToCalendars } from '@/organizer/helper/transform-organizers-to-calendars';
+import { Calendar } from '@/calendar/types/calendar.types';
+import { GetCalendarsSuccessful } from './get-calendars.schema';
+import { getDataCacheControlHeader } from '@/config/cache-control-header';
 
-/**
- * @swagger
- * /api/calendars:
- *   get:
- *     summary: Returns a list of all available calendars.
- *     description: Provides all available calendars of active clients from the crm system.
- *     tags:
- *       - Calendars
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: type
- *         in: query
- *         description: The type of the calendar (google|ical).
- *     responses:
- *       200:
- *         description: Calendars.
- *       204:
- *         description: No calendars found.
- *       401:
- *         description: Unauthorized.
- *       500:
- *         description: Error. Maybe the crm system could not be reached.
- */
-export async function GET(request: NextRequest) {
-  const log = getLogger(api.calendars.get);
+const log = getLogger(apiLoggerCalendars.calendars);
 
-  const searchParams = request.nextUrl.searchParams;
-  const type: string | null = searchParams.get('type');
+const handler = createNextHandler(
+  GetCalendarsContract,
+  {
+    'get-calendars': async ({}, res) => {
+      try {
+        // Fetch all mateo contacts
+        const mateoContacts: MateoContactListItem[] = await getMateoContacts();
 
-  // check parameter "type"
-  if (type && !['google', 'ical'].includes(type)) {
-    const errBody: ApiErrorResponse = {
-      status: 400,
-      error: `Parameter "type" is invalid.`,
-    };
-    return Response.json(errBody, {
-      status: errBody.status,
-      headers: {
-        ...ChacheHeaderFifteenMinutes,
-      },
-    });
-  }
+        // set response timestamp
+        const timestamp = new Date().toISOString();
 
-  const query: ZendesksellGetCalendarsQuery = type
-    ? { type: type as CalenderFeedType }
-    : {};
+        // map to organizer object and filter out null values, if some were filtered out by mapping
+        const organizers: Organizer[] = mapToOrganizers(mateoContacts);
 
-  // first get calendars from organizers from crm
-  let zendeskCalendars: ZendesksellGetCalendarsResult =
-    await zendesksellGetCalendars(query);
+        // transform to calendar list
+        const calendars: Calendar[] =
+          transformOrganizersToCalendars(organizers);
 
-  // check if no calendars found
-  if (!zendeskCalendars || zendeskCalendars.length === 0) {
-    const errBody: CalendarApiResponse = {
-      status: 200,
-      results: 0,
-      data: [],
-    };
-    return Response.json(errBody, {
-      status: errBody.status,
-      headers: {
-        ...ChacheHeaderFifteenMinutes,
-      },
-    });
-  }
+        if (calendars.length === 0) {
+          return {
+            status: 200,
+            body: {
+              status: 204,
+              timestamp: timestamp,
+              results: 0,
+              data: [],
+            } as GetCalendarsSuccessful,
+          };
+        }
 
-  // compose zendeskCalendars and googleCalendars to one list typed as SvFCalendar
-  const data: SvFCalendar[] =
-    await enrichZendeskCalendarsWithGoogleCalendars(zendeskCalendars);
+        // Set cache control header
+        res.responseHeaders.set('Cache-Control', getDataCacheControlHeader());
 
-  const responseBody: CalendarApiResponse = {
-    status: data && data.length > 0 ? 200 : 404,
-    results: data ? data?.length : 0,
-    data: data || [],
-  };
-
-  if (responseBody.status !== 200) {
-    return Response.json(responseBody, {
-      status: responseBody.status,
-      headers: {
-        ...ChacheHeaderFifteenMinutes,
-      },
-    });
-  }
-
-  // send response with cache headers
-  return Response.json(responseBody, {
-    headers: {
-      ...ChacheHeaderFifteenMinutes,
+        return {
+          status: 200,
+          body: {
+            status: 200,
+            timestamp: timestamp,
+            results: calendars.length,
+            data: calendars,
+          } as GetCalendarsSuccessful,
+        };
+      } catch (error) {
+        log.error({ error }, 'Error while fetching calendars');
+        return {
+          status: 500,
+          body: {
+            status: 500,
+            error: 'Internal Server Error',
+            trace: error,
+          } as ErrorSchema,
+        };
+      }
     },
-  });
-}
+  },
+
+  {
+    jsonQuery: true,
+    responseValidation: true,
+    handlerType: 'app-router',
+    errorHandler: handleZodError,
+  },
+);
+
+export { handler as GET };

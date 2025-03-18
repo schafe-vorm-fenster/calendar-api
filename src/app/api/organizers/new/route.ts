@@ -1,22 +1,6 @@
-import { type NextRequest } from 'next/server';
-import {
-  ZendesksellGetClientsQuery,
-  ZendesksellGetClientsResult,
-  zendesksellGetClients,
-} from '@/apiclients/crm/zendesksellGetClients';
-import { OrganizerApiResponse } from '../api.types';
-import { ChacheHeaderFifteenMinutes } from '../../api.const';
-
-/**
- * @swagger
- * /api/organizers/new:
- *   get:
- *     summary: Returns a list of new organizers.
- *     description: Provides new organizers (active clients from the crm system) since a given point in time.
- *     tags:
- *       - Organizers
- *     produces:
- *       - application/json
+/*
+ * TODO: implemente a function to retrieve all organizers created after a certain point in time.
+ *
  *     parameters:
  *       - name: since
  *         in: query
@@ -34,45 +18,3 @@ import { ChacheHeaderFifteenMinutes } from '../../api.const';
  *       500:
  *         description: Error. Maybe the crm system could not be reached.
  */
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const since: string | null = searchParams.get('since'); // ISO-8601
-
-  if (!since) {
-    return new Response(`Required parameter "since" is missing.`, {
-      status: 400,
-    });
-  }
-
-  if (!since.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)) {
-    return new Response(`Parameter "since" is not in ISO-8601 format.`, {
-      status: 400,
-    });
-  }
-
-  const query: ZendesksellGetClientsQuery = { changed: since };
-  const data: ZendesksellGetClientsResult =
-    (await zendesksellGetClients(query)) || null;
-
-  const responseBody: OrganizerApiResponse = {
-    status: data ? 200 : 404,
-    results: data ? data.length : 0,
-    data: data || [],
-  };
-
-  if (responseBody.status !== 200) {
-    return Response.json(responseBody, {
-      status: responseBody.status,
-      headers: {
-        ...ChacheHeaderFifteenMinutes,
-      },
-    });
-  }
-
-  // send response with cache headers
-  return Response.json(responseBody, {
-    headers: {
-      ...ChacheHeaderFifteenMinutes,
-    },
-  });
-}

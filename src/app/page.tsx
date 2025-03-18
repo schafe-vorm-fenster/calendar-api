@@ -1,41 +1,27 @@
 import SwaggerUI from 'swagger-ui-react';
-import { createSwaggerSpec } from 'next-swagger-doc';
-import packageJson from '../../package.json' assert { type: 'json' };
+import { generateOpenApi } from '@ts-rest/open-api';
 import { Metadata } from 'next';
-
-async function getSwaggerSpec() {
-  const spec: Record<string, any> = createSwaggerSpec({
-    apiFolder: 'src/app/api',
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: packageJson.name,
-        description: packageJson?.description,
-        version: packageJson.version,
-        contact: {
-          name: 'Schafe vorm Fenster UG',
-          email: 'jan@schafe-vorm-fenster.de',
-        },
-      },
-    },
-  });
-
-  return spec;
-}
+import packageJson from '../../package.json' assert { type: 'json' };
+import { ApiContract } from './api/api.contract';
 
 export const metadata: Metadata = {
   title: packageJson.name + ' - Swagger',
   description: packageJson.description,
-  authors: [
-    {
-      name: 'Schafe vorm Fenster UG',
-      url: 'https://github.com/schafe-vorm-fenster',
-    },
-  ],
 };
 
-export default async function Page() {
-  const swaggerSpec = await getSwaggerSpec();
+export default function Home() {
+  const openApiDocument = generateOpenApi(ApiContract, {
+    info: {
+      title: packageJson.name,
+      description: packageJson?.description,
+      version: packageJson.version,
+      contact: {
+        name: packageJson.author.name as string,
+        email: packageJson.author.email as string,
+      },
+      license: { name: packageJson.license },
+    },
+  });
 
-  return <SwaggerUI spec={swaggerSpec} />;
+  return <SwaggerUI spec={openApiDocument} />;
 }

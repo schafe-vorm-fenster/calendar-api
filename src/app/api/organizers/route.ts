@@ -1,51 +1,76 @@
-import {
-  ZendesksellGetClientsQuery,
-  ZendesksellGetClientsResult,
-  zendesksellGetClients,
-} from '@/apiclients/crm/zendesksellGetClients';
-import { OrganizerApiResponse } from './api.types';
+import { getLogger } from '@/logging/logger';
+import { apiLoggerOrganizers } from '@/logging/loggerApps.config';
+import { createNextHandler } from '@ts-rest/serverless/next';
+import { GetOrganizersContract } from './get-organizers.contract';
+import { MateoContactListItem } from '@/clients/mateo/types/mateo-contact-list.types';
+import { getMateoContacts } from '@/clients/mateo/mateo-get-contacts';
+import { Organizer } from '@/organizer/types/organizer.types';
+import { GetOrganizersSuccessful } from './get-organizers.schema';
+import { ErrorSchema } from '@/rest/error.schema';
+import { handleZodError } from '@/rest/zod-error-handler';
+import { mapToOrganizers } from '@/clients/mateo/helpers/map-to-organizers';
+import { getDataCacheControlHeader } from '@/config/cache-control-header';
 
-/**
- * @swagger
- * /api/organizers:
- *   get:
- *     summary: Returns a list of all organizers..
- *     description: Provides all organizers which means all active clients from the crm system.
- *     tags:
- *       - Organizers
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: Organizers.
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: No organizers found.
- *       500:
- *         description: Error. Maybe the crm system could not be reached.
- */
-export async function GET() {
-  const query: ZendesksellGetClientsQuery = {};
-  const data: ZendesksellGetClientsResult =
-    (await zendesksellGetClients(query)) || null;
+const log = getLogger(apiLoggerOrganizers.organizers);
 
-  const responseBody: OrganizerApiResponse = {
-    status: data ? 200 : 404,
-    results: data ? data.length : 0,
-    data: data || [],
-  };
+const handler = createNextHandler(
+  GetOrganizersContract,
+  {
+    'get-organizers': async ({}, res) => {
+      try {
+        // Fetch all mateo contacts
+        const mateoContacts: MateoContactListItem[] = await getMateoContacts();
 
-  // add cache header to allow cdn caching of responses
-  const cacheMaxAge: string = '1800'; // 30 minutes
-  const cacheStaleWhileRevalidate: string = '180'; // 3 minutes
+        // map to organizer object and filter out null values, if some were filtered out by mapping
+        const organizers: Organizer[] = mapToOrganizers(mateoContacts);
 
-  // send response with cache headers
-  return Response.json(responseBody, {
-    headers: {
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=180',
-      'CDN-Cache-Control': 'public, s-maxage=180',
-      'Vercel-CDN-Cache-Control': 'public, s-maxage=1800',
+        // set response timestamp
+        const timestamp = new Date().toISOString();
+
+        if (organizers.length === 0) {
+          return {
+            status: 200,
+            body: {
+              status: 204,
+              timestamp: timestamp,
+              results: 0,
+              data: [],
+            } as GetOrganizersSuccessful,
+          };
+        }
+
+        // Set cache control header
+        res.responseHeaders.set('Cache-Control', getDataCacheControlHeader());
+
+        return {
+          status: 200,
+          body: {
+            status: 200,
+            timestamp: timestamp,
+            results: organizers.length,
+            data: organizers,
+          } as GetOrganizersSuccessful,
+        };
+      } catch (error) {
+        log.error({ error }, 'Error while fetching organizers');
+        return {
+          status: 500,
+          body: {
+            status: 500,
+            error: 'Internal Server Error',
+            trace: error,
+          } as ErrorSchema,
+        };
+      }
     },
-  });
-}
+  },
+
+  {
+    jsonQuery: true,
+    responseValidation: true,
+    handlerType: 'app-router',
+    errorHandler: handleZodError,
+  },
+);
+
+export { handler as GET };
