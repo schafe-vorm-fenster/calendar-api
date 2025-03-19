@@ -1,20 +1,25 @@
 {
   "name": "@schafevormfenster/calendar-api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "The API provides a comprehensive solution for managing calendar subscriptions and facilitating real-time event updates.",
+  "description": "The calendar API delivers data related to organizers and calendars from the CRM, facilitating access to calendar events sourced from Google calendars.",
   "keywords": [
-    "Calendar",
-    "Events"
+    "calendar",
+    "events"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/schafe-vorm-fenster/calendar-api.git"
+    "url": "https://github.com/schafe-vorm-fenster/calendar-api"
   },
+  "bugs": {
+    "url": "https://github.com/schafe-vorm-fenster/calendar-api/issues"
+  },
+  "homepage": "https://www.schafe-vorm-fenster.de",
   "license": "MIT",
   "author": {
     "name": "Schafe vorm Fenster UG",
-    "email": "jan@schafe-vorm-fenster.de"
+    "email": "jan@schafe-vorm-fenster.de",
+    "url": "https://www.schafe-vorm-fenster.de"
   },
   "browser": {
     "fs": false,
