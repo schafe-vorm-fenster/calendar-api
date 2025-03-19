@@ -22,10 +22,10 @@
     "os": false
   },
   "scripts": {
-    "build": "node --require ./ss-polyfills/File.js ./node_modules/.bin/next build",
-    "dev": "node --require ./ss-polyfills/File.js ./node_modules/.bin/next dev -p 8500",
+    "build": "next build",
+    "dev": "next dev -p 8500",
     "lint": "next lint",
-    "start": "node --require ./ss-polyfills/File.js ./node_modules/.bin/next start -p 8500",
+    "start": "next start -p 8500",
     "test": "vitest run --coverage"
   },
   "dependencies": {
