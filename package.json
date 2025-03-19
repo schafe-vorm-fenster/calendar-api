@@ -1,6 +1,6 @@
 {
   "name": "@schafevormfenster/calendar-api",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "The calendar API delivers data related to organizers and calendars from the CRM, facilitating access to calendar events sourced from Google calendars.",
   "keywords": [
