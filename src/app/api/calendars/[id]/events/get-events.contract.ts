@@ -12,17 +12,10 @@ export const GetEventsContract = c.router({
     path: `/api/calendars/:id/events`,
     query: z.object({
       // default / fallback today 0am
-      timeMin: ISO8601Schema.optional().default(
-        new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+      timeMin: ISO8601Schema.optional().describe('Default value is today 0am.'),
+      timeMax: ISO8601Schema.optional().describe(
+        'Default value is 90 days in the furture.',
       ),
-      // default / fallback to 90 days in the future
-      timeMax: ISO8601Schema.optional().default(() => {
-        const futureDate = new Date(
-          new Date().getTime() + 90 * 24 * 60 * 60 * 1000,
-        );
-        futureDate.setHours(0, 0, 0, 0);
-        return futureDate.toISOString();
-      }),
       updatedMin: ISO8601Schema.optional(),
     }),
 

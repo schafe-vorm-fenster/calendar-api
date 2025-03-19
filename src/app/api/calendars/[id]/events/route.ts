@@ -30,6 +30,21 @@ const handler = createNextHandler(
           `Fetching events for calendar ${id}`,
         );
 
+        // set default values for timeMin and timeMax
+        if (!timeMin) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          timeMin = today.toISOString();
+        }
+        if (!timeMax) {
+          const futureDate = new Date(
+            new Date().getTime() + 90 * 24 * 60 * 60 * 1000,
+          );
+          futureDate.setHours(0, 0, 0, 0);
+          timeMax = futureDate.toISOString();
+        }
+
+        // fetch the actual events
         const result: ReducedGoogleEvent[] | null =
           await googleCalendarGetEvents({
             calendarId: id,
