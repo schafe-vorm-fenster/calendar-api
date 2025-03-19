@@ -26,7 +26,7 @@ export const googleCalendarFetchEvents = async (
       timeMin: query.timeMin ?? undefined,
       timeMax: query.timeMax ?? undefined,
       updatedMin: query.updatedMin ?? undefined,
-      maxResults: 500, // maximum from google is 2.500, default would be 250, use a high number to minimize request overhead
+      maxResults: 1000, // maximum from google is 2.500, default would be 250, use a high number to minimize request overhead
       pageToken: query.pageToken ?? undefined,
     },
   );
