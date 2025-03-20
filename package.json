@@ -38,7 +38,7 @@
     "@googleapis/calendar": "^9.8.0",
     "@ts-rest/open-api": "^3.52.1",
     "googleapis": "^146.0.0",
-    "next": "^15.3.0-canary.15",
+    "next": "15.3.0-canary.10",
     "pino": "^9.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
