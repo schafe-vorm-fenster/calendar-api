@@ -35,3 +35,20 @@ export const getDataCacheControlHeader = (): string => {
   const ttl = getDataCacheTTL();
   return getCacheControlHeader(Number(ttl));
 };
+
+/**
+ * Cache ttl for health check responses, should be low but any to avoid spamming the service
+ * @returns
+ */
+export const getHealthCacheTTL = (): number => {
+  return Number(process.env.HEALTH_CACHE_TTL || 2);
+};
+
+/**
+ * Cache control header for health check responses
+ * @returns
+ */
+export const getHealthCacheControlHeader = (): string => {
+  const ttl = getHealthCacheTTL();
+  return getCacheControlHeader(Number(ttl));
+};
