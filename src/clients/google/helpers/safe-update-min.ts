@@ -9,6 +9,7 @@ import { ISO8601, ISO8601Schema } from "@/rest/iso8601.types";
 import { getLogger } from "@/logging/logger";
 import { clientLoggerGoogle } from "@/logging/loggerApps.config";
 import { ZodError } from "zod";
+import { now as getCurrentDate } from "./now";
 
 export function safeUpdateMin(
   isoDateString: ISO8601 | string | null | undefined
@@ -26,9 +27,9 @@ export function safeUpdateMin(
     const date = new Date(parsedDate);
 
     const maxDaysInPast = 25;
-    const now = new Date();
-    const maxPastDate = new Date(now);
-    maxPastDate.setDate(now.getDate() - maxDaysInPast);
+    const currentDate: Date = getCurrentDate();
+    const maxPastDate = new Date(currentDate);
+    maxPastDate.setDate(currentDate.getDate() - maxDaysInPast);
 
     // Check if date is more than max days in the past
     if (date < maxPastDate) {

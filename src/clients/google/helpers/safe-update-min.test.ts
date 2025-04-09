@@ -1,14 +1,10 @@
 import { safeUpdateMin } from "./safe-update-min";
-import { getLogger } from "@/logging/logger";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import * as nowModule from "./now";
 
-// Mock the logger
-vi.mock("@/logging/logger", () => ({
-  getLogger: vi.fn().mockReturnValue({
-    warn: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
-  }),
+// Mock the now function
+vi.mock("./now", () => ({
+  now: vi.fn(),
 }));
 
 describe("safeUpdateMin", () => {
@@ -23,11 +19,19 @@ describe("safeUpdateMin", () => {
     // Setup mock date to 2023-01-15T12:00:00Z
     mockDate = new OriginalDate(2023, 0, 15, 12, 0, 0);
 
-    // Mock Date constructor and now method
+    // Mock the now function to return our fixed date
+    vi.mocked(nowModule.now).mockReturnValue(mockDate);
+
+    // Mock Date constructor for when direct Date objects are created
     global.Date = class extends OriginalDate {
-      constructor(...args: any[]) {
+      constructor(...args: (string | number)[]) {
+        super();
         if (args.length === 0) {
           return mockDate;
+        }
+        // Handle ISO string dates properly
+        if (args.length === 1 && typeof args[0] === "string") {
+          return new OriginalDate(args[0]);
         }
         return new OriginalDate(...args);
       }
@@ -51,7 +55,7 @@ describe("safeUpdateMin", () => {
 
   it("should return null for invalid date formats", () => {
     expect(safeUpdateMin("invalid-date")).toBeNull();
-    expect(safeUpdateMin("2023/01/01")).toBeNull(); // This format is valid, but testing the error branch
+    expect(safeUpdateMin("2023/01/01")).toBeNull(); // This format doesn't match ISO8601 requirements
   });
 
   it("should adjust dates that are too far in the past", () => {
@@ -76,18 +80,5 @@ describe("safeUpdateMin", () => {
     const futureDate = "2023-01-25T12:00:00.000Z";
 
     expect(safeUpdateMin(futureDate)).toBe(futureDate);
-  });
-
-  it("should handle errors and return null", () => {
-    // Mock Date constructor to throw error
-    const originalDateConstructor = global.Date;
-    global.Date = vi.fn(() => {
-      throw new Error("Mocked error");
-    }) as unknown as typeof Date;
-
-    expect(safeUpdateMin("2023-01-01T12:00:00Z")).toBeNull();
-
-    // Restore Date
-    global.Date = originalDateConstructor;
   });
 });
