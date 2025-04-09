@@ -1,14 +1,14 @@
-import { createNextHandler } from '@ts-rest/serverless/next';
-import { HealthContract } from './health.contract';
-import packageJson from '../../../../package.json' assert { type: 'json' };
-import { getLogger } from '@/logging/logger';
-import { apiLoggerHealth } from '@/logging/loggerApps.config';
+import { createNextHandler } from "@ts-rest/serverless/next";
+import { HealthContract } from "./health.contract";
+import packageJson from "../../../../package.json" assert { type: "json" };
+import { getLogger } from "@/logging/logger";
+import { apiLoggerHealth } from "@/logging/loggerApps.config";
 import {
   HealthyApiStatusSchema,
   ServiceStatusSchema,
   UnhealthyApiStatusSchema,
-} from '@/rest/health.schema';
-import { checkMateoApiHealth } from '@/clients/mateo/mateo-check-health';
+} from "@/rest/health.schema";
+import { checkMateoApiHealth } from "@/clients/mateo/mateo-check-health";
 
 const log = getLogger(apiLoggerHealth.check);
 
@@ -16,6 +16,8 @@ const handler = createNextHandler(
   HealthContract,
   {
     health: async () => {
+      log.debug({}, "Checking health status");
+
       // evaluate overall status code
       let status: number = 200;
 
@@ -23,7 +25,15 @@ const handler = createNextHandler(
       const crmApiHealth: ServiceStatusSchema = await checkMateoApiHealth();
 
       if (crmApiHealth.status !== 200) {
-        log.error({ services: [crmApiHealth] }, 'service is unhealthy');
+        const error = {
+          status: crmApiHealth.status || 500,
+          message:
+            "error" in crmApiHealth
+              ? (crmApiHealth.error as string)
+              : "Unknown error",
+        };
+
+        log.error({ error }, "Service is unhealthy");
         status = 503;
       }
 
@@ -35,15 +45,16 @@ const handler = createNextHandler(
           description: packageJson.description,
           services: [crmApiHealth],
         };
+        log.info({}, "Health check passed successfully");
         return { status: 200, body: apiStatus };
       }
 
       const apiStatus: UnhealthyApiStatusSchema = {
         status: 503,
         error:
-          'error' in crmApiHealth
+          "error" in crmApiHealth
             ? (crmApiHealth.error as string)
-            : 'Unknown error',
+            : "Unknown error",
         version: packageJson.version,
         name: packageJson.name,
         description: packageJson.description,
@@ -54,8 +65,8 @@ const handler = createNextHandler(
   },
 
   {
-    handlerType: 'app-router',
-  },
+    handlerType: "app-router",
+  }
 );
 
 export { handler as GET };

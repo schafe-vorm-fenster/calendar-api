@@ -1,24 +1,26 @@
-import { getLogger } from '@/logging/logger';
-import { apiLoggerCalendars } from '@/logging/loggerApps.config';
-import { createNextHandler } from '@ts-rest/serverless/next';
-import { MateoContactListItem } from '@/clients/mateo/types/mateo-contact-list.types';
-import { getMateoContacts } from '@/clients/mateo/mateo-get-contacts';
-import { Organizer } from '@/organizer/types/organizer.types';
-import { ErrorSchema } from '@/rest/error.schema';
-import { handleZodError } from '@/rest/zod-error-handler';
-import { GetCalendarsContract } from './get-calendars.contract';
-import { mapToOrganizers } from '@/clients/mateo/helpers/map-to-organizers';
-import { transformOrganizersToCalendars } from '@/organizer/helper/transform-organizers-to-calendars';
-import { Calendar } from '@/calendar/types/calendar.types';
-import { GetCalendarsSuccessful } from './get-calendars.schema';
-import { getDataCacheControlHeader } from '@/config/cache-control-header';
+import { getLogger } from "@/logging/logger";
+import { apiLoggerCalendars } from "@/logging/loggerApps.config";
+import { createNextHandler } from "@ts-rest/serverless/next";
+import { MateoContactListItem } from "@/clients/mateo/types/mateo-contact-list.types";
+import { getMateoContacts } from "@/clients/mateo/mateo-get-contacts";
+import { Organizer } from "@/organizer/types/organizer.types";
+import { ErrorSchema } from "@/rest/error.schema";
+import { handleZodError } from "@/rest/zod-error-handler";
+import { GetCalendarsContract } from "./get-calendars.contract";
+import { mapToOrganizers } from "@/clients/mateo/helpers/map-to-organizers";
+import { transformOrganizersToCalendars } from "@/organizer/helper/transform-organizers-to-calendars";
+import { Calendar } from "@/calendar/types/calendar.types";
+import { GetCalendarsSuccessful } from "./get-calendars.schema";
+import { getDataCacheControlHeader } from "@/config/cache-control-header";
 
 const log = getLogger(apiLoggerCalendars.calendars);
 
 const handler = createNextHandler(
   GetCalendarsContract,
   {
-    'get-calendars': async ({}, res) => {
+    "get-calendars": async ({}, res) => {
+      log.debug({}, "Fetching calendars");
+
       try {
         // Fetch all mateo contacts
         const mateoContacts: MateoContactListItem[] = await getMateoContacts();
@@ -34,6 +36,7 @@ const handler = createNextHandler(
           transformOrganizersToCalendars(organizers);
 
         if (calendars.length === 0) {
+          log.info({}, "No calendars found");
           return {
             status: 200,
             body: {
@@ -46,7 +49,16 @@ const handler = createNextHandler(
         }
 
         // Set cache control header
-        res.responseHeaders.set('Cache-Control', getDataCacheControlHeader());
+        res.responseHeaders.set("Cache-Control", getDataCacheControlHeader());
+
+        log.info(
+          {
+            data: {
+              count: calendars.length,
+            },
+          },
+          "Calendars fetched successfully"
+        );
 
         return {
           status: 200,
@@ -58,12 +70,12 @@ const handler = createNextHandler(
           } as GetCalendarsSuccessful,
         };
       } catch (error) {
-        log.error({ error }, 'Error while fetching calendars');
+        log.error(error, "Error while fetching calendars");
         return {
           status: 500,
           body: {
             status: 500,
-            error: 'Internal Server Error',
+            error: "Internal Server Error",
             trace: error,
           } as ErrorSchema,
         };
@@ -74,9 +86,9 @@ const handler = createNextHandler(
   {
     jsonQuery: true,
     responseValidation: true,
-    handlerType: 'app-router',
+    handlerType: "app-router",
     errorHandler: handleZodError,
-  },
+  }
 );
 
 export { handler as GET };

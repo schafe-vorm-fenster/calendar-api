@@ -1,28 +1,35 @@
-import { getLogger } from '@/logging/logger';
-import { apiLoggerCalendars } from '@/logging/loggerApps.config';
-import { createNextHandler } from '@ts-rest/serverless/next';
-import { MateoContactListItem } from '@/clients/mateo/types/mateo-contact-list.types';
-import { getMateoContacts } from '@/clients/mateo/mateo-get-contacts';
-import { Organizer } from '@/organizer/types/organizer.types';
-import { ErrorSchema } from '@/rest/error.schema';
-import { handleZodError } from '@/rest/zod-error-handler';
-import { mapToOrganizers } from '@/clients/mateo/helpers/map-to-organizers';
-import { transformOrganizersToCalendars } from '@/organizer/helper/transform-organizers-to-calendars';
-import { Calendar } from '@/calendar/types/calendar.types';
-import { getDataCacheControlHeader } from '@/config/cache-control-header';
-import { GetCalendarContract } from './get-calendar.contract';
-import { filterCalendarsById } from '@/calendar/helpers/filter-calendars-by-id';
-import { GetCalendarSuccessful } from './get-calendar.schema';
+import { getLogger } from "@/logging/logger";
+import { apiLoggerCalendars } from "@/logging/loggerApps.config";
+import { createNextHandler } from "@ts-rest/serverless/next";
+import { MateoContactListItem } from "@/clients/mateo/types/mateo-contact-list.types";
+import { getMateoContacts } from "@/clients/mateo/mateo-get-contacts";
+import { Organizer } from "@/organizer/types/organizer.types";
+import { ErrorSchema } from "@/rest/error.schema";
+import { handleZodError } from "@/rest/zod-error-handler";
+import { mapToOrganizers } from "@/clients/mateo/helpers/map-to-organizers";
+import { transformOrganizersToCalendars } from "@/organizer/helper/transform-organizers-to-calendars";
+import { Calendar } from "@/calendar/types/calendar.types";
+import { getDataCacheControlHeader } from "@/config/cache-control-header";
+import { GetCalendarContract } from "./get-calendar.contract";
+import { filterCalendarsById } from "@/calendar/helpers/filter-calendars-by-id";
+import { GetCalendarSuccessful } from "./get-calendar.schema";
 
 const log = getLogger(apiLoggerCalendars.calendar);
 
 const handler = createNextHandler(
   GetCalendarContract,
   {
-    'get-calendar': async ({ params }, res) => {
+    "get-calendar": async ({ params }, res) => {
       try {
-        log.debug({ params }, 'Fetching calendar');
-        log.debug({ id: params.id }, 'Fetching calendar');
+        log.trace(
+          {
+            query: {
+              id: params.id,
+            },
+          },
+          "Fetching calendar"
+        );
+
         // Fetch all mateo contacts
         const mateoContacts: MateoContactListItem[] = await getMateoContacts();
 
@@ -39,21 +46,37 @@ const handler = createNextHandler(
         // search for calendar by id
         const calendar: Calendar | null = filterCalendarsById(
           calendars,
-          params.id,
+          params.id
         );
 
         if (!calendar) {
+          log.warn(
+            {
+              data: { id: params.id },
+            },
+            "Calendar not found"
+          );
+
           return {
             status: 404,
             body: {
               status: 404,
-              error: 'Not Found',
+              error: "Not Found",
             } as ErrorSchema,
           };
         }
 
         // Set cache control header
-        res.responseHeaders.set('Cache-Control', getDataCacheControlHeader());
+        res.responseHeaders.set("Cache-Control", getDataCacheControlHeader());
+
+        log.info(
+          {
+            data: {
+              id: params.id,
+            },
+          },
+          "Calendar fetched successfully"
+        );
 
         return {
           status: 200,
@@ -64,12 +87,13 @@ const handler = createNextHandler(
           } as GetCalendarSuccessful,
         };
       } catch (error) {
-        log.error({ error }, 'Error while fetching calendar');
+        log.error(error, "Error while fetching calendar");
+
         return {
           status: 500,
           body: {
             status: 500,
-            error: 'Internal Server Error',
+            error: "Internal Server Error",
             trace: error,
           } as ErrorSchema,
         };
@@ -80,9 +104,9 @@ const handler = createNextHandler(
   {
     jsonQuery: true,
     responseValidation: true,
-    handlerType: 'app-router',
+    handlerType: "app-router",
     errorHandler: handleZodError,
-  },
+  }
 );
 
 export { handler as GET };

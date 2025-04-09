@@ -24,12 +24,19 @@ const handler = createNextHandler(
       { params: { id }, query: { timeMin, timeMax, updatedMin } },
       res
     ) => {
-      try {
-        log.info(
-          { id, timeMin, timeMax, updatedMin },
-          `Fetching events for calendar ${id}`
-        );
+      log.trace(
+        {
+          query: {
+            id,
+            timeMin,
+            timeMax,
+            updatedMin,
+          },
+        },
+        "Fetching events for calendar"
+      );
 
+      try {
         // set response timestamp
         const timestamp = new Date().toISOString();
 
@@ -41,7 +48,12 @@ const handler = createNextHandler(
         const calendar: Calendar | null = filterCalendarsById(calendars, id);
 
         if (!calendar) {
-          log.warn({ data: { id } }, `Calendar not found`);
+          log.warn(
+            {
+              data: { id },
+            },
+            "Calendar not found"
+          );
           return {
             status: 404,
             body: {
@@ -75,6 +87,16 @@ const handler = createNextHandler(
           });
 
         if (!result || result.length === 0) {
+          log.info(
+            {
+              data: {
+                calendarId: id,
+                timeRange: { timeMin, timeMax },
+              },
+            },
+            "No events found for calendar"
+          );
+
           return {
             status: 200,
             body: {
@@ -100,6 +122,16 @@ const handler = createNextHandler(
         // Set cache control header
         res.responseHeaders.set("Cache-Control", getDataCacheControlHeader());
 
+        log.info(
+          {
+            data: {
+              calendarId: id,
+              count: result.length,
+            },
+          },
+          "Events fetched successfully"
+        );
+
         return {
           status: 200,
           body: {
@@ -110,16 +142,12 @@ const handler = createNextHandler(
           },
         };
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred.";
+        log.error(error, "Error fetching calendar events");
         return {
           status: 500,
           body: {
             status: 500,
             error: "Internal Server Error",
-            message: errorMessage,
           } as ErrorSchema,
         };
       }
